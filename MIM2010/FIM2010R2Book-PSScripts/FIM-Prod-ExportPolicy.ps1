@@ -1,0 +1,24 @@
+if(@(get-pssnapin | where-object {$_.Name -eq "FIMAutomation"} ).count -eq 0) {add-pssnapin FIMAutomation}
+$workDir = "C:\FIMConfig\"
+$policy_filename = $workDir+"FIM-Prod-Policy.xml"
+Write-Host "Exporting configuration objects from production."
+# In many production environments, some Set resources are larger than the default message size of 10 MB.
+$policy = Export-FIMConfig -policyConfig -portalConfig -MessageSize 9999999
+if ($policy -eq $null)
+{
+    Write-Host "Export did not successfully retrieve configuration from FIM.  Please review any error messages and ensure that the arguments to Export-FIMConfig are correct."
+}
+else
+{
+    Write-Host "Exported " $policy.Count " objects from production."
+    $policy | ConvertFrom-FIMResource -file $policy_filename
+    Write-Host "Pilot file is saved as " $policy_filename "."
+    if($policy.Count -gt 0)
+    {
+        Write-Host "Export complete."
+    }
+    else
+    {
+        Write-Host "While export completed, there were no resources.  Please ensure that the arguments to Export-FIMConfig are correct."
+    }
+}
